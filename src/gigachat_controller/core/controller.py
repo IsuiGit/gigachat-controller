@@ -1,3 +1,4 @@
+from pydantic import BaseModel
 from typing import (
     Any,
     Dict,
@@ -27,7 +28,7 @@ class _GigaChatController:
             llm = GigaChat
 
         self._config = _create_config_instance(config)
-        self._llm = _create_llm(llm, self._config)
+        self._llm = llm
 
         super().__init__(**kwargs)
 
@@ -39,38 +40,42 @@ class _GigaChatController:
 
     def _models(self) -> Models:
         try:
-            models = self._llm.get_models()
+            _conn = _create_llm(self._llm, self._config)
+            models = _conn.get_models()
             return models
         except Exception as e:
             raise e
 
     def _chat(self, message: Any) -> Any:
         try:
+            _conn = _create_llm(self._llm, self._config)
             if isinstance(message, str):
-                response = self._llm.chat(message)
+                response = _conn.chat(message)
             else:
                 _str_message = str(message)
-                response = self._llm.chat(_str_message)
+                response = _conn.chat(_str_message)
             return response
         except Exception as e:
             raise e
+
+    def _stream(self) -> List[str]: pass
+
+    #TODO: knows type of embeding return
+    def _embedings(self) -> Any: pass
+
+    #TODO: knows type of fc return
+    def _function_call(self) -> None: pass
+
+    def _structured(self, model: BaseModel) -> BaseModel: pass
 
     async def _achat(self, message: Any) -> Any:
         try:
+            _conn = _create_llm(self._llm, self._config)
             if isinstance(message, str):
-                response = await self._llm.achat(message)
+                response = await _conn.achat(message)
             else:
                 _str_message = str(message)
-                response = await self._llm.achat(_str_message)
+                response = await _conn.achat(_str_message)
             return response
         except Exception as e:
             raise e
-
-
-    def _close(self):
-        if self._llm:
-            self._llm.close()
-            self._llm = None
-
-    def __del__(self):
-        self._close()

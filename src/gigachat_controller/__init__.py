@@ -1,5 +1,6 @@
 from .core import _GigaChatController
 from .meta import _GigaChatControllerMeta
+from .models import GigaChatControllerContext
 
 from typing import (
     Type,
@@ -8,6 +9,13 @@ from typing import (
 )
 
 class GigaChatController(_GigaChatController, _GigaChatControllerMeta):
+    @property
+    def context(self) -> GigaChatControllerContext:
+        return self._ctx
+
+    @property
+    def logger(self):
+        return self._logger
 
     def info(self):
         return self._commit(self._info)
