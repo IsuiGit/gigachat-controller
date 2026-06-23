@@ -1,6 +1,10 @@
 from enum import StrEnum, auto
 from pydantic import BaseModel, create_model, Field, ConfigDict
-from typing import Optional, Any, Annotated
+from typing import Optional, Any, Annotated, List, Optional
+
+from gigachat.models import (
+    ChatCompletionChunk,
+)
 
 from .exceptions import GigaChatControllerException
 
@@ -33,36 +37,39 @@ def _create_config_instance(data: Dict[str, Any] = None) -> BaseModel:
     return BasicConfig(**data)
 
 class GigaChatResponseMetaHeaders(BaseModel):
-    x_request_id: Annotated[
-        str | None,
-        Field(description="GigaChat response x-request-id", alias="x-request-id")
-    ] = None
-    x_session_id: Annotated[
-        str | None,
-        Field(description="GigaChat response x-session-id", alias="x-session-id")
-    ] = None
-    x_client_id: Annotated[
-        str | None,
-        Field(description="GigaChat response x-client-id", alias="x-client-id")
-    ] = None
+    x_request_id: Optional[str] = Field(
+        description="GigaChat response x-request-id",
+        alias="x-request-id",
+        default_factory=str
+    )
+    x_session_id: Optional[str] = Field(
+        description="GigaChat response x-session-id",
+        alias="x-session-id",
+        default_factory=str
+    )
+    x_client_id: Optional[str] = Field(
+        description="GigaChat response x-client-id",
+        alias="x-client-id",
+        default_factory=str
+    )
 
 class GigaChatResponseMetaUsage(BaseModel):
-    prompt_tokens: Annotated[
-        int | None,
-        Field(description="GigaChat usage prompt_tokens")
-    ] = None
-    completion_tokens: Annotated[
-        int | None,
-        Field(description="GigaChat usage completion_tokens")
-    ] = None
-    total_tokens: Annotated[
-        int | None,
-        Field(description="GigaChat usage total_tokens")
-    ] = None
-    precached_prompt_tokens: Annotated[
-        int | None,
-        Field(description="GigaChat usage precached_prompt_tokens")
-    ] = None
+    prompt_tokens: Optional[int] = Field(
+        description="GigaChat usage prompt_tokens",
+        default=0
+    )
+    completion_tokens: Optional[int] = Field(
+        description="GigaChat usage completion_tokens",
+        default=0
+    )
+    total_tokens: Optional[int] = Field(
+        description="GigaChat usage total_tokens",
+        default=0
+    )
+    precached_prompt_tokens: Optional[int] = Field(
+        description="GigaChat usage precached_prompt_tokens",
+        default=0
+    )
 
 class GigaChatResponseMeta(BaseModel):
     headers: GigaChatResponseMetaHeaders = Field(default=GigaChatResponseMetaHeaders())
@@ -71,22 +78,25 @@ class GigaChatResponseMeta(BaseModel):
     usage: GigaChatResponseMetaUsage = Field(default=GigaChatResponseMetaUsage())
     finish_reason: str = Field(default=str())
 
+class GigaChatStreamResponse(BaseModel):
+    chunks: List[ChatCompletionChunk] = Field(default=list())
+
 class GigaChatControllerContext(BaseModel):
     model_config = ConfigDict(arbitrary_types_allowed=True)
 
-    last_error: Annotated[
-        GigaChatControllerException | None,
-        Field(description="Last GCC exception/error.")
-    ] = None
-    last_response: Annotated[
-        Any | None,
-        Field(description="Response model")
-    ] = None
-    last_agent_response: Annotated[
-        str | None,
-        Field(description="GigaChat response model")
-    ] = None
-    last_agent_response_meta: Annotated[
-        GigaChatResponseMeta | None,
-        Field(description="GigaChat response meta model")
-    ] = None
+    last_error: GigaChatControllerException = Field(
+        description="Last GCC exception/error.",
+        default=None,
+    )
+    last_response: Any = Field(
+        description="Response model",
+        default=None
+    )
+    agent_responses: Optional[List[str]] = Field(
+        description="GigaChat response model",
+        default_factory=list
+    )
+    agent_responses_meta: Optional[List[GigaChatResponseMeta]] = Field(
+        description="GigaChat response meta model",
+        default_factory=list
+    )

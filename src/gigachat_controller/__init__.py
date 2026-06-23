@@ -29,6 +29,9 @@ class GigaChatController(_GigaChatController, _GigaChatControllerMeta):
     async def ainvoke(self, message: Any):
         return await self._acommit(self._achat, message)
 
+    def stream(self, message: Any):
+        return self._commit(self._stream, message)
+
 __all__ = [
     "GigaChatController"
 ]

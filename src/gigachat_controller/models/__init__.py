@@ -4,6 +4,7 @@ from .basics import (
     GigaChatResponseMeta,
     GigaChatResponseMetaHeaders,
     GigaChatResponseMetaUsage,
+    GigaChatStreamResponse,
 )
 from .exceptions import (
     GigaChatControllerException,
@@ -20,4 +21,5 @@ __all__ = [
     "GigaChatResponseMeta",
     "GigaChatResponseMetaHeaders",
     "GigaChatResponseMetaUsage",
+    "GigaChatStreamResponse"
 ]
