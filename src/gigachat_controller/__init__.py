@@ -32,6 +32,9 @@ class GigaChatController(_GigaChatController, _GigaChatControllerMeta):
     def stream(self, message: Any):
         return self._commit(self._stream, message)
 
+    async def astream(self, message: Any):
+        return await self._acommit(self._astream, message)
+
 __all__ = [
     "GigaChatController"
 ]

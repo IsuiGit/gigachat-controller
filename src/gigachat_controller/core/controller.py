@@ -60,26 +60,6 @@ class _GigaChatController:
         except Exception as e:
             raise e
 
-    def _stream(self, message: Any) -> List[ChatCompletionChunk]:
-        try:
-            _conn = _create_llm(self._llm, self._config)
-            _stream = []
-            for chunk in _conn.stream(message):
-                _stream.append(chunk)
-            return GigaChatStreamResponse(chunks=_stream)
-        except Exception as e:
-            raise e
-
-    async def _astream(self) -> List[str] : pass
-
-    # #TODO: knows type of embeding return
-    # def _embedings(self) -> Any: pass
-    #
-    # #TODO: knows type of fc return
-    # def _function_call(self) -> None: pass
-    #
-    # def _structured(self, model: BaseModel) -> BaseModel: pass
-
     async def _achat(self, message: Any) -> ChatCompletion:
         try:
             _conn = _create_llm(self._llm, self._config)
@@ -88,3 +68,33 @@ class _GigaChatController:
             return response
         except Exception as e:
             raise e
+
+    def _stream(self, message: Any) -> List[ChatCompletionChunk]:
+        try:
+            _conn = _create_llm(self._llm, self._config)
+            _stream = []
+            _str_message = str(message)
+            for chunk in _conn.stream(_str_message):
+                _stream.append(chunk)
+            return GigaChatStreamResponse(chunks=_stream)
+        except Exception as e:
+            raise e
+
+    async def _astream(self, message: Any) -> List[ChatCompletionChunk]:
+        try:
+            _conn = _create_llm(self._llm, self._config)
+            _stream = []
+            _str_message = str(message)
+            async for chunk in _conn.astream(_str_message):
+                _stream.append(chunk)
+            return GigaChatStreamResponse(chunks=_stream)
+        except Exception as e:
+            raise e
+
+    # #TODO: knows type of embeding return
+    # def _embedings(self) -> Any: pass
+    #
+    # #TODO: knows type of fc return
+    # def _function_call(self) -> None: pass
+    #
+    # def _structured(self, model: BaseModel) -> BaseModel: pass
