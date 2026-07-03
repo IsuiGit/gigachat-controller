@@ -25,6 +25,7 @@ from gigachat_controller.utils import (
     _get_exception,
     _get_chat_completion,
     _get_stream,
+    _apply_meta,
 )
 
 LOGGING_CONFIG = {
@@ -101,28 +102,13 @@ class _GigaChatControllerMeta:
             match result:
                 case ChatCompletion():
                     text, meta = _get_chat_completion(result)
-                    self._ctx.agent_responses.append(text)
-                    self._ctx.agent_responses_meta.append(meta)
-                    self._logger.info(f"Execute func {function.__name__}.")
-                    self._logger.info(f"Response from agent: {self._ctx.agent_responses[-1]}")
-                    self._logger.info(f"Result metadata: {self._ctx.agent_responses_meta[-1].model_dump_json(indent=2)}")
-                    return self._ctx.agent_responses[-1]
+                    return _apply_meta(self._ctx, self._logger, text, meta, function)
                 case GigaChatStreamResponse():
                     text, meta = _get_stream(result)
-                    self._ctx.agent_responses.append(text)
-                    self._ctx.agent_responses_meta.append(meta)
-                    self._logger.info(f"Execute func {function.__name__}.")
-                    self._logger.info(f"Response from agent: {self._ctx.agent_responses[-1]}")
-                    self._logger.info(f"Result metadata: {self._ctx.agent_responses_meta[-1].model_dump_json(indent=2)}")
-                    return self._ctx.agent_responses[-1]
+                    return _apply_meta(self._ctx, self._logger, text, meta, function)
                 case FunctionCallNode():
                     text, meta = _get_chat_completion(result.response)
-                    self._ctx.agent_responses.append(text)
-                    self._ctx.agent_responses_meta.append(meta)
-                    self._logger.info(f"Execute func {function.__name__}.")
-                    self._logger.info(f"Response from agent: {self._ctx.agent_responses[-1]}")
-                    self._logger.info(f"Result metadata: {self._ctx.agent_responses_meta[-1].model_dump_json(indent=2)}")
-                    return self._ctx.agent_responses[-1]
+                    return _apply_meta(self._ctx, self._logger, text, meta, function)
                 case _:
                     self._ctx.last_response = result
                     self._logger.info(f"Execute func {function.__name__}.")
@@ -142,23 +128,16 @@ class _GigaChatControllerMeta:
             if len(self._ctx.agent_responses_meta) >= 10:
                 self._ctx.agent_responses_meta = list()
             # Match-case result type
-            match case:
+            match result:
                 case ChatCompletion():
                     text, meta = _get_chat_completion(result)
-                    self._ctx.agent_responses.append(text)
-                    self._ctx.agent_responses_meta.append(meta)
-                    self._logger.info(f"Execute func {function.__name__}.")
-                    self._logger.info(f"Response from agent: {self._ctx.agent_responses[-1]}")
-                    self._logger.info(f"Result metadata: {self._ctx.agent_responses_meta[-1].model_dump_json(indent=2)}")
-                    return self._ctx.agent_responses[-1]
+                    return _apply_meta(self._ctx, self._logger, text, meta, function)
                 case GigaChatStreamResponse():
                     text, meta = _get_stream(result)
-                    self._ctx.agent_responses.append(text)
-                    self._ctx.agent_responses_meta.append(meta)
-                    self._logger.info(f"Execute func {function.__name__}.")
-                    self._logger.info(f"Response from agent: {self._ctx.agent_responses[-1]}")
-                    self._logger.info(f"Result metadata: {self._ctx.agent_responses_meta[-1].model_dump_json(indent=2)}")
-                    return self._ctx.agent_responses[-1]
+                    return _apply_meta(self._ctx, self._logger, text, meta, function)
+                case FunctionCallNode():
+                    text, meta = _get_chat_completion(result.response)
+                    return _apply_meta(self._ctx, self._logger, text, meta, function)
                 case _:
                     self._ctx.last_response = result
                     self._logger.info(f"Execute func {function.__name__}.")

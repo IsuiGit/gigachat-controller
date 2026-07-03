@@ -1,4 +1,4 @@
-from typing import Tuple
+from typing import Tuple, Callable
 
 from gigachat.models import (
     ChatCompletion,
@@ -10,6 +10,7 @@ from gigachat_controller.models import (
     GigaChatResponseMetaUsage,
     GigaChatStreamResponse,
     FunctionCallNode,
+    GigaChatControllerContext,
 )
 
 def _get_chat_completion(chat_completion: ChatCompletion) -> Tuple[str, GigaChatResponseMeta]:
@@ -43,3 +44,17 @@ def _get_stream(stream: GigaChatStreamResponse) -> Tuple[str, GigaChatResponseMe
         finish_reason=stream.chunks[-1].choices[0].finish_reason
     )
     return _text, _meta
+
+def _apply_meta(
+    ctx: GigaChatControllerContext,
+    logger: Any,
+    text: str,
+    meta: GigaChatResponseMeta,
+    function: Callable
+) -> None:
+    ctx.agent_responses.append(text)
+    ctx.agent_responses_meta.append(meta)
+    logger.info(f"Execute func {function.__name__}.")
+    logger.info(f"Response from agent: {ctx.agent_responses[-1]}")
+    logger.info(f"Result metadata: {ctx.agent_responses_meta[-1].model_dump_json(indent=2)}")
+    return ctx.agent_responses[-1]
