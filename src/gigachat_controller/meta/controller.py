@@ -88,41 +88,45 @@ class _GigaChatControllerMeta:
 
         super().__init__(**kwargs)
 
-    #TODO: add max_context eraser & available tokens + released tokens functions
-
     def _commit(self, function: Callable, *args, **kwargs) -> Union[Any, None]:
         try:
-            #TODO: add max_ctx controll function
             _info = _get_callable_info(function)
             result = function(*args, **kwargs)
-            if isinstance(result, ChatCompletion):
-                text, meta = _get_chat_completion(result)
-                self._ctx.agent_responses.append(text)
-                self._ctx.agent_responses_meta.append(meta)
-                self._logger.info(f"Execute func {function.__name__}.")
-                self._logger.info(f"Response from agent: {self._ctx.agent_responses[-1]}")
-                self._logger.info(f"Result metadata: {self._ctx.agent_responses_meta[-1].model_dump_json(indent=2)}")
-                return self._ctx.agent_responses[-1]
-            elif isinstance(result, GigaChatStreamResponse):
-                text, meta = _get_stream(result)
-                self._ctx.agent_responses.append(text)
-                self._ctx.agent_responses_meta.append(meta)
-                self._logger.info(f"Execute func {function.__name__}.")
-                self._logger.info(f"Response from agent: {self._ctx.agent_responses[-1]}")
-                self._logger.info(f"Result metadata: {self._ctx.agent_responses_meta[-1].model_dump_json(indent=2)}")
-                return self._ctx.agent_responses[-1]
-            elif isinstance(result, FunctionCallNode):
-                text, meta = _get_chat_completion(result.response)
-                self._ctx.agent_responses.append(text)
-                self._ctx.agent_responses_meta.append(meta)
-                self._logger.info(f"Execute func {function.__name__}.")
-                self._logger.info(f"Response from agent: {self._ctx.agent_responses[-1]}")
-                self._logger.info(f"Result metadata: {self._ctx.agent_responses_meta[-1].model_dump_json(indent=2)}")
-                return self._ctx.agent_responses[-1]
-            else:
-                self._ctx.last_response = result
-                self._logger.info(f"Execute func {function.__name__}.")
-                return self._ctx.last_response
+            # Check max context
+            if len(self._ctx.agent_responses) >= 10:
+                self._ctx.agent_responses = list()
+            if len(self._ctx.agent_responses_meta) >= 10:
+                self._ctx.agent_responses_meta = list()
+            # Match-case result type
+            match result:
+                case ChatCompletion():
+                    text, meta = _get_chat_completion(result)
+                    self._ctx.agent_responses.append(text)
+                    self._ctx.agent_responses_meta.append(meta)
+                    self._logger.info(f"Execute func {function.__name__}.")
+                    self._logger.info(f"Response from agent: {self._ctx.agent_responses[-1]}")
+                    self._logger.info(f"Result metadata: {self._ctx.agent_responses_meta[-1].model_dump_json(indent=2)}")
+                    return self._ctx.agent_responses[-1]
+                case GigaChatStreamResponse():
+                    text, meta = _get_stream(result)
+                    self._ctx.agent_responses.append(text)
+                    self._ctx.agent_responses_meta.append(meta)
+                    self._logger.info(f"Execute func {function.__name__}.")
+                    self._logger.info(f"Response from agent: {self._ctx.agent_responses[-1]}")
+                    self._logger.info(f"Result metadata: {self._ctx.agent_responses_meta[-1].model_dump_json(indent=2)}")
+                    return self._ctx.agent_responses[-1]
+                case FunctionCallNode():
+                    text, meta = _get_chat_completion(result.response)
+                    self._ctx.agent_responses.append(text)
+                    self._ctx.agent_responses_meta.append(meta)
+                    self._logger.info(f"Execute func {function.__name__}.")
+                    self._logger.info(f"Response from agent: {self._ctx.agent_responses[-1]}")
+                    self._logger.info(f"Result metadata: {self._ctx.agent_responses_meta[-1].model_dump_json(indent=2)}")
+                    return self._ctx.agent_responses[-1]
+                case _:
+                    self._ctx.last_response = result
+                    self._logger.info(f"Execute func {function.__name__}.")
+                    return self._ctx.last_response
         except Exception as e:
             self._ctx.last_error = _get_exception(e, _info)
             self._logger.error(f"Exception at func {function.__name__}.\nException: {self._ctx.last_error}")
@@ -132,26 +136,33 @@ class _GigaChatControllerMeta:
         try:
             _info = _get_callable_info(function)
             result = await function(*args, **kwargs)
-            if isinstance(result, ChatCompletion):
-                text, meta = _get_chat_completion(result)
-                self._ctx.agent_responses.append(text)
-                self._ctx.agent_responses_meta.append(meta)
-                self._logger.info(f"Execute func {function.__name__}.")
-                self._logger.info(f"Response from agent: {self._ctx.agent_responses[-1]}")
-                self._logger.info(f"Result metadata: {self._ctx.agent_responses_meta[-1].model_dump_json(indent=2)}")
-                return self._ctx.agent_responses[-1]
-            elif isinstance(result, GigaChatStreamResponse):
-                text, meta = _get_stream(result)
-                self._ctx.agent_responses.append(text)
-                self._ctx.agent_responses_meta.append(meta)
-                self._logger.info(f"Execute func {function.__name__}.")
-                self._logger.info(f"Response from agent: {self._ctx.agent_responses[-1]}")
-                self._logger.info(f"Result metadata: {self._ctx.agent_responses_meta[-1].model_dump_json(indent=2)}")
-                return self._ctx.agent_responses[-1]
-            else:
-                self._ctx.last_response = result
-                self._logger.info(f"Execute func {function.__name__}.")
-                return self._ctx.last_response
+            # Check max context
+            if len(self._ctx.agent_responses) >= 10:
+                self._ctx.agent_responses = list()
+            if len(self._ctx.agent_responses_meta) >= 10:
+                self._ctx.agent_responses_meta = list()
+            # Match-case result type
+            match case:
+                case ChatCompletion():
+                    text, meta = _get_chat_completion(result)
+                    self._ctx.agent_responses.append(text)
+                    self._ctx.agent_responses_meta.append(meta)
+                    self._logger.info(f"Execute func {function.__name__}.")
+                    self._logger.info(f"Response from agent: {self._ctx.agent_responses[-1]}")
+                    self._logger.info(f"Result metadata: {self._ctx.agent_responses_meta[-1].model_dump_json(indent=2)}")
+                    return self._ctx.agent_responses[-1]
+                case GigaChatStreamResponse():
+                    text, meta = _get_stream(result)
+                    self._ctx.agent_responses.append(text)
+                    self._ctx.agent_responses_meta.append(meta)
+                    self._logger.info(f"Execute func {function.__name__}.")
+                    self._logger.info(f"Response from agent: {self._ctx.agent_responses[-1]}")
+                    self._logger.info(f"Result metadata: {self._ctx.agent_responses_meta[-1].model_dump_json(indent=2)}")
+                    return self._ctx.agent_responses[-1]
+                case _:
+                    self._ctx.last_response = result
+                    self._logger.info(f"Execute func {function.__name__}.")
+                    return self._ctx.last_response
         except Exception as e:
             self._ctx.last_error = _get_exception(e, _info)
             self._logger.error(f"Exception at func {function.__name__}.\nException: {self._ctx.last_error}")
