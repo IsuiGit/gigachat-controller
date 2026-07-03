@@ -17,6 +17,7 @@ from gigachat_controller.models import (
     GigaChatControllerContext,
     GigaChatControllerException,
     GigaChatStreamResponse,
+    FunctionCallNode,
 )
 
 from gigachat_controller.utils import (
@@ -104,6 +105,14 @@ class _GigaChatControllerMeta:
                 return self._ctx.agent_responses[-1]
             elif isinstance(result, GigaChatStreamResponse):
                 text, meta = _get_stream(result)
+                self._ctx.agent_responses.append(text)
+                self._ctx.agent_responses_meta.append(meta)
+                self._logger.info(f"Execute func {function.__name__}.")
+                self._logger.info(f"Response from agent: {self._ctx.agent_responses[-1]}")
+                self._logger.info(f"Result metadata: {self._ctx.agent_responses_meta[-1].model_dump_json(indent=2)}")
+                return self._ctx.agent_responses[-1]
+            elif isinstance(result, FunctionCallNode):
+                text, meta = _get_chat_completion(result.response)
                 self._ctx.agent_responses.append(text)
                 self._ctx.agent_responses_meta.append(meta)
                 self._logger.info(f"Execute func {function.__name__}.")

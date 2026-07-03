@@ -9,6 +9,7 @@ from gigachat_controller.models import (
     GigaChatResponseMetaHeaders,
     GigaChatResponseMetaUsage,
     GigaChatStreamResponse,
+    FunctionCallNode,
 )
 
 def _get_chat_completion(chat_completion: ChatCompletion) -> Tuple[str, GigaChatResponseMeta]:

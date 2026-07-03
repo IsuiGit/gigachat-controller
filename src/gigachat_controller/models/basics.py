@@ -1,9 +1,26 @@
-from enum import StrEnum, auto
-from pydantic import BaseModel, create_model, Field, ConfigDict
-from typing import Optional, Any, Annotated, List, Optional
+from enum import (
+    StrEnum,
+    auto,
+)
+from pydantic import (
+    BaseModel,
+    create_model,
+    Field,
+    ConfigDict,
+)
+from typing import (
+    Optional,
+    Any,
+    Annotated,
+    List,
+    Optional,
+    Dict,
+    Callable,
+)
 
 from gigachat.models import (
     ChatCompletionChunk,
+    ChatCompletion,
 )
 
 from .exceptions import GigaChatControllerException
@@ -100,3 +117,15 @@ class GigaChatControllerContext(BaseModel):
         description="GigaChat response meta model",
         default_factory=list
     )
+
+class FunctionCallNode(BaseModel):
+    name: str = Field(..., description="String name of node.")
+    function: Callable = Field(..., description="Function object for execute.")
+    map: dict = Field(..., description="Map of function.")
+    message: str = Field(..., description="Node message to LLM.")
+    response: ChatCompletion = Field(default=str(), description="Node response.")
+    order: int = Field(..., description="Order of node.")
+
+class FunctionCall(BaseModel):
+    nodes: List[FunctionCallNode] = Field(..., description="List of executable nodes.")
+    responses: List[str] = Field(default_factory=list, description="List of responses")

@@ -24,3 +24,6 @@ class GigaChatControllerHttpException(GigaChatControllerException):
 
 class GigaChatControllerHttpXException(GigaChatControllerException):
     pass
+
+class GigaChatControllerFunctionCallException(GigaChatControllerException):
+    pass

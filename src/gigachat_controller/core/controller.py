@@ -1,8 +1,11 @@
+import json
+
 from pydantic import BaseModel
 from typing import (
     Any,
     Dict,
     Tuple,
+    Callable,
 )
 
 from gigachat import GigaChat
@@ -10,11 +13,14 @@ from gigachat.models import (
     Models,
     ChatCompletion,
     ChatCompletionChunk,
+    Chat,
 )
 
 from gigachat_controller.models import (
     _create_config_instance,
     GigaChatStreamResponse,
+    FunctionCallNode,
+    GigaChatControllerFunctionCallException,
 )
 from gigachat_controller.utils import (
     _create_llm,
@@ -48,8 +54,7 @@ class _GigaChatController:
             _conn = _create_llm(self._llm, self._config)
             models = _conn.get_models()
             return models
-        except Exception as e:
-            raise e
+        except Exception as e: raise e
 
     def _chat(self, message: Any) -> ChatCompletion:
         try:
@@ -57,8 +62,7 @@ class _GigaChatController:
             _str_message = str(message)
             response = _conn.chat(_str_message)
             return response
-        except Exception as e:
-            raise e
+        except Exception as e: raise e
 
     async def _achat(self, message: Any) -> ChatCompletion:
         try:
@@ -66,8 +70,7 @@ class _GigaChatController:
             _str_message = str(message)
             response = await _conn.achat(_str_message)
             return response
-        except Exception as e:
-            raise e
+        except Exception as e: raise e
 
     def _stream(self, message: Any) -> List[ChatCompletionChunk]:
         try:
@@ -77,8 +80,7 @@ class _GigaChatController:
             for chunk in _conn.stream(_str_message):
                 _stream.append(chunk)
             return GigaChatStreamResponse(chunks=_stream)
-        except Exception as e:
-            raise e
+        except Exception as e: raise e
 
     async def _astream(self, message: Any) -> List[ChatCompletionChunk]:
         try:
@@ -88,13 +90,49 @@ class _GigaChatController:
             async for chunk in _conn.astream(_str_message):
                 _stream.append(chunk)
             return GigaChatStreamResponse(chunks=_stream)
-        except Exception as e:
-            raise e
+        except Exception as e: raise e
+
+    def _function_call(self, function_call_node: FunctionCallNode) -> FunctionCallNode:
+        try:
+            _conn = _create_llm(self._llm, self._config)
+            _messages = [
+                {"role": "user", "content": function_call_node.message}
+            ]
+            _chat = Chat(
+                messages=_messages,
+                functions=[function_call_node.map]
+            )
+            _function_call_response = _conn.chat(_chat)
+            _function_call_message = _function_call_response.choices[0].message
+            if _function_call_message.function_call:
+                _messages.append(_function_call_message.dict())
+                _name = _function_call_message.function_call.name
+                _args = _function_call_message.function_call.arguments
+                if _name != function_call_node.function.__name__:
+                    raise GigaChatControllerFunctionCallException(
+                        code=201,
+                        tool=function_call_node.function.__name__,
+                    )
+                _function_response = function_call_node.function(**_args)
+                _messages.append(
+                    {
+                        "role": "function",
+                        "name": _name,
+                        "content": json.dumps(str(_function_response), ensure_ascii=False)
+                    }
+                )
+                _final_chat = Chat(messages=_messages)
+                _function_call_final_response = _conn.chat(_final_chat)
+                function_call_node.response = _function_call_final_response
+                return function_call_node
+            else:
+                function_call_node.response = _function_call_response
+                return function_call_node
+        except Exception as e: raise e
 
     # #TODO: knows type of embeding return
     # def _embedings(self) -> Any: pass
     #
-    # #TODO: knows type of fc return
-    # def _function_call(self) -> None: pass
+
     #
     # def _structured(self, model: BaseModel) -> BaseModel: pass

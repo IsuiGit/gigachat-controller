@@ -5,11 +5,14 @@ from .basics import (
     GigaChatResponseMetaHeaders,
     GigaChatResponseMetaUsage,
     GigaChatStreamResponse,
+    FunctionCallNode,
+    FunctionCall,
 )
 from .exceptions import (
     GigaChatControllerException,
     GigaChatControllerHttpException,
     GigaChatControllerHttpXException,
+    GigaChatControllerFunctionCallException,
 )
 
 __all__ = [
@@ -18,8 +21,11 @@ __all__ = [
     "GigaChatControllerException",
     "GigaChatControllerHttpException",
     "GigaChatControllerHttpXException",
+    "GigaChatControllerFunctionCallException",
     "GigaChatResponseMeta",
     "GigaChatResponseMetaHeaders",
     "GigaChatResponseMetaUsage",
-    "GigaChatStreamResponse"
+    "GigaChatStreamResponse",
+    "FunctionCall",
+    "FunctionCallNode",
 ]
