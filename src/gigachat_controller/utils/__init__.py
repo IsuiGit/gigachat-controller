@@ -8,6 +8,7 @@ from .meta import (
     _get_chat_completion,
     _get_stream,
     _apply_meta,
+    _apply_unknow_meta,
 )
 
 __all__ = [
@@ -18,4 +19,5 @@ __all__ = [
     "_get_chat_completion",
     "_get_stream",
     "_apply_meta",
+    "_apply_unknow_meta",
 ]

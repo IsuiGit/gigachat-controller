@@ -50,7 +50,7 @@ def _apply_meta(
     logger: Any,
     text: str,
     meta: GigaChatResponseMeta,
-    function: Callable
+    function: Callable,
 ) -> None:
     ctx.agent_responses.append(text)
     ctx.agent_responses_meta.append(meta)
@@ -58,3 +58,13 @@ def _apply_meta(
     logger.info(f"Response from agent: {ctx.agent_responses[-1]}")
     logger.info(f"Result metadata: {ctx.agent_responses_meta[-1].model_dump_json(indent=2)}")
     return ctx.agent_responses[-1]
+
+def _apply_unknow_meta(
+    ctx: GigaChatControllerContext,
+    logger: Any,
+    result: Any,
+    function: Callable,
+) -> None:
+    ctx.last_response = result
+    logger.info(f"Execute func {function.__name__}.")
+    return ctx.last_response

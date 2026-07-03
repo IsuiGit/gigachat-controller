@@ -26,6 +26,7 @@ from gigachat_controller.utils import (
     _get_chat_completion,
     _get_stream,
     _apply_meta,
+    _apply_unknow_meta,
 )
 
 LOGGING_CONFIG = {
@@ -110,9 +111,7 @@ class _GigaChatControllerMeta:
                     text, meta = _get_chat_completion(result.response)
                     return _apply_meta(self._ctx, self._logger, text, meta, function)
                 case _:
-                    self._ctx.last_response = result
-                    self._logger.info(f"Execute func {function.__name__}.")
-                    return self._ctx.last_response
+                    return _apply_unknow_meta(self._ctx, self._logger, result, function)
         except Exception as e:
             self._ctx.last_error = _get_exception(e, _info)
             self._logger.error(f"Exception at func {function.__name__}.\nException: {self._ctx.last_error}")
@@ -139,9 +138,7 @@ class _GigaChatControllerMeta:
                     text, meta = _get_chat_completion(result.response)
                     return _apply_meta(self._ctx, self._logger, text, meta, function)
                 case _:
-                    self._ctx.last_response = result
-                    self._logger.info(f"Execute func {function.__name__}.")
-                    return self._ctx.last_response
+                    return _apply_unknow_meta(self._ctx, self._logger, result, function)
         except Exception as e:
             self._ctx.last_error = _get_exception(e, _info)
             self._logger.error(f"Exception at func {function.__name__}.\nException: {self._ctx.last_error}")
