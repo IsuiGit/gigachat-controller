@@ -110,6 +110,7 @@ class _GigaChatController:
                 _args = _function_call_message.function_call.arguments
                 if _name != function_call_node.function.__name__:
                     raise GigaChatControllerFunctionCallException(
+                        f"Name of function_call {_name} not equal function name {function_call_node.function.__name__}"
                         code=201,
                         tool=function_call_node.function.__name__,
                     )
@@ -129,10 +130,3 @@ class _GigaChatController:
                 function_call_node.response = _function_call_response
                 return function_call_node
         except Exception as e: raise e
-
-    # #TODO: knows type of embeding return
-    # def _embedings(self) -> Any: pass
-    #
-
-    #
-    # def _structured(self, model: BaseModel) -> BaseModel: pass
